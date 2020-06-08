@@ -1,0 +1,32 @@
+{
+  "name": "prlimit",
+  "version": "1.0.0",
+  "description": "Native POSIX prlimit method for Node.JS",
+  "main": "index.js",
+  "dependencies": {
+    "nan": "^2.14.1"
+  },
+  "devDependencies": { },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-gyp rebuild"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkaraush/node-prlimit.git"
+  },
+  "keywords": [
+    "ulimit",
+    "rlimit",
+    "prlimit",
+    "posix",
+    "c++"
+  ],
+  "author": "dkaraush",
+  "license": "ISC",
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/dkaraush/node-prlimit/issues"
+  },
+  "homepage": "https://github.com/dkaraush/node-prlimit#readme"
+}
