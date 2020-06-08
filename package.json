@@ -1,5 +1,5 @@
 {
-  "name": "node-prlimit",
+  "name": "prlimit",
   "version": "1.0.1",
   "description": "Native POSIX prlimit method for Node.JS",
   "main": "build/Release/prlimit.node",
