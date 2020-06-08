@@ -1,8 +1,8 @@
 {
-  "name": "prlimit",
-  "version": "1.0.0",
+  "name": "node-prlimit",
+  "version": "1.0.1",
   "description": "Native POSIX prlimit method for Node.JS",
-  "main": "index.js",
+  "main": "build/Release/prlimit.node",
   "dependencies": {
     "nan": "^2.14.1"
   },

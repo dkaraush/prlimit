@@ -2,7 +2,7 @@
 #include <sys/resource.h>
 #include <limits>
 #include <cctype>
-#include <iostream>
+#include <string>
 
 using namespace v8;
 
@@ -89,10 +89,10 @@ const Limit limits[] = {
 
 NAN_METHOD(prlimit) {
 	if (info.Length() < 2 || info.Length() > 3)
-		return Nan::ThrowError("prlimit: function takes 2-3 arguments");
+		return Nan::ThrowTypeError("prlimit: Function takes 2-3 arguments");
 
 	if (!info[0]->IsNumber())
-		return Nan::ThrowError("prlimit: first argument must be a number (pid)");
+		return Nan::ThrowTypeError("prlimit: first argument must be a number (pid)");
 	pid_t pid = Nan::To<signed int>(info[0]).FromJust();
 
 	bool found_resource = false;
@@ -108,7 +108,7 @@ NAN_METHOD(prlimit) {
 			*resource_string_ptr = std::tolower(*resource_string_ptr);
 			resource_string_ptr++;
 		}
-		for (const Limit* item = limits; item->name; ++item) {
+		for (const Limit* item = limits; item->name && item->name != 0; ++item) {
 			if (strcmp(*resource_string, item->name) == 0) {
 				resource = item->resource;
 				found_resource = true;
@@ -117,15 +117,20 @@ NAN_METHOD(prlimit) {
 		}
 
 		if (!found_resource)
-			return Nan::ThrowError("prlimit: resource is not found by string (could be not supported in your OS)");
+			return Nan::ThrowTypeError("prlimit: Resource is not found by string (could be not supported in your OS)");
 	} else {
-		return Nan::ThrowError("prlimit: second argument must be a number or a string (resource)");
+		return Nan::ThrowTypeError("prlimit: Second argument must be a number or a string (resource)");
 	}
 
 	bool has_new_limit = false;
 	struct rlimit new_limit;
 	if (info.Length() == 3) {
+		if (!info[2]->IsObject())
+			return Nan::ThrowTypeError("prlimit: Third argument must be an object with \"soft\" and \"hard\" keys.");
 		Local<Object> new_limit_obj = Nan::To<v8::Object>(info[2]).ToLocalChecked();
+		if (!Nan::Has(new_limit_obj, V8String("soft")).ToChecked() ||
+			!Nan::Has(new_limit_obj, V8String("hard")).ToChecked())
+			return Nan::ThrowTypeError("prlimit: Third argument must be an object with \"soft\" and \"hard\" keys.");
 		new_limit = rlimit{
 			.rlim_cur = V8ValueToRLimit(new_limit_obj->Get(V8String("soft")), true),
 			.rlim_max = V8ValueToRLimit(new_limit_obj->Get(V8String("hard")), false)
@@ -138,15 +143,15 @@ NAN_METHOD(prlimit) {
 	int err = prlimit(pid, resource, has_new_limit ? &new_limit : NULL, &old_limit);
 
 	if (err == EFAULT)
-		return Nan::ThrowError("prlimit: EFAULT: A pointer argument points to a location outside the accessible address space.");
+		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EFAULT: A pointer argument points to a location outside the accessible address space."));
 	if (err == EINVAL)
-		return Nan::ThrowError("prlimit: EINVAL: The value specified in resource is not valid; or, for setrlimit() or prlimit(): rlim->rlim_cur was greater than rlim->rlim_max.");
+		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EINVAL: The value specified in resource is not valid; or, for setrlimit() or prlimit(): rlim->rlim_cur was greater than rlim->rlim_max."));
 	if (err == EPERM)
-		return Nan::ThrowError("prlimit: EPERM: An unprivileged process tried to raise the hard limit; the CAP_SYS_RESOURCE capability is required to do this. Or, the caller tried to increase the hard RLIMIT_NOFILE limit above the current kernel maximum (NR_OPEN). Or, the calling process did not have permission to set limits for the process specified by pid.");
+		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EPERM: An unprivileged process tried to raise the hard limit; the CAP_SYS_RESOURCE capability is required to do this. Or, the caller tried to increase the hard RLIMIT_NOFILE limit above the current kernel maximum (NR_OPEN). Or, the calling process did not have permission to set limits for the process specified by pid."));
 	if (err == ESRCH)
-		return Nan::ThrowError("prlimit: ESRCH: Could not find a process with the ID specified in pid.");
+		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "ESRCH: Could not find a process with the ID specified in pid."));
 	if (err)
-		return Nan::ThrowError("prlimit: Unknown error number: " + err);
+		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "Unknown error number"));
 
 	Local<Object> old_limit_obj = Nan::New<Object>();
 	old_limit_obj->Set(V8String("soft"), RLimitToV8Value(old_limit.rlim_cur));
