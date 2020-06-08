@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "description": "Native POSIX prlimit method for Node.JS",
   "main": "build/Release/prlimit.node",
-  "types": "src/types.d.ts",
+  "types": "index.d.ts",
   "dependencies": {
     "nan": "^2.14.1"
   },
