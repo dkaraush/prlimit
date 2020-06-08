@@ -2,7 +2,7 @@
 #include <sys/resource.h>
 #include <limits>
 #include <cctype>
-#include <string>
+#include <iostream>
 
 using namespace v8;
 
@@ -24,6 +24,15 @@ rlim_t V8ValueToRLimit(Local<Value> value, bool isCur) {
 			return RLIM_INFINITY;
 		return Nan::To<uint>(value).FromJust();
 	}
+}
+
+char* toLowerCase(char* str) {
+	char* ptr = str;
+	while (ptr) {
+		*ptr = std::tolower(*ptr);
+		ptr++;
+	}
+	return str;
 }
 
 Local<String> V8String(const char* char_array) {
@@ -101,15 +110,9 @@ NAN_METHOD(prlimit) {
 		resource = static_cast<__rlimit_resource>(Nan::To<int>(info[1]).FromJust());
 		found_resource = true;
 	} else if (info[1]->IsString()) {
-		Nan::Utf8String resource_string(info[1]);
-		// to lower case
-		unsigned char *resource_string_ptr = (unsigned char *) &resource_string;
-		while (*resource_string_ptr) {
-			*resource_string_ptr = std::tolower(*resource_string_ptr);
-			resource_string_ptr++;
-		}
+		char* resource_string = toLowerCase(*Nan::Utf8String(info[1]));
 		for (const Limit* item = limits; item->name && item->name != 0; ++item) {
-			if (strcmp(*resource_string, item->name) == 0) {
+			if (strcmp(resource_string, item->name) == 0) {
 				resource = item->resource;
 				found_resource = true;
 				break;
