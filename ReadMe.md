@@ -6,13 +6,13 @@ Command itself can replace `setrlimit` and `getrlimit`. No need to run `ulimit` 
 
 ## Installation
 
-Simply do `npm install node-prlimit`. Package uses `node-gyp`, so make sure you have all needed tools (`make`, C++, macos: xcode).
+Simply do `npm install prlimit`. Package uses `node-gyp`, so make sure you have all needed tools (`make`, C++, macos: xcode).
 
-Also, I am looking forward to add `@types/node-prlimit`.
+Also, I am looking forward to add `@types/prlimit`.
 
 ## Usage
 
-`require('node-prlimit')` returns a function:
+`require('prlimit')` returns a function:
 ```ts
 prlimit(
     pid : number, 
