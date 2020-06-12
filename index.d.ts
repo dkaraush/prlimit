@@ -1,18 +1,18 @@
 declare module "prlimit" {
-	interface Limit {
+	export interface Limit {
 		hard: number | null;
 		soft: number | null;
 	}
 
-	type ResourceLimit = "cpu" | "data" | "fsize" | "locks" |
+	export type ResourceLimit = "cpu" | "data" | "fsize" | "locks" |
 		"memlock" | "msgqueue" | "nice" | "nofile" |
 		"nproc" | "rss" | "rtprio" | "rttime" | "sigpending";
 
 	function prlimit (
 		pid: number,
 		resource: number | ResourceLimit,
-		new_limit: Limit
+		new_limit?: Limit
 	) : Limit;
 
-	export = prlimit;
+	export default prlimit;
 }

@@ -164,10 +164,16 @@ NAN_METHOD(prlimit) {
 }
 
 void init(Handle<Object> exports, Handle<Object> module) {
+	Handle<Object> function = Nan::GetFunction(Nan::New<FunctionTemplate>(prlimit)).ToLocalChecked();
+	Nan::Set(
+		function,
+		V8String("default"),
+		function
+	);
 	Nan::Set(
 		module,
 		V8String("exports"),
-		Nan::GetFunction(Nan::New<FunctionTemplate>(prlimit)).ToLocalChecked()
+		function
 	);
 }
 
