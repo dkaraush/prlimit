@@ -8,8 +8,6 @@ Command itself can replace `setrlimit` and `getrlimit`. No need to run `ulimit` 
 
 Simply do `npm install prlimit`. Package uses `node-gyp`, so make sure you have all needed tools (`make`, C++, macos: xcode).
 
-Also, I am looking forward to add `@types/prlimit`.
-
 ## Usage
 
 `require('prlimit')` returns a function:
