@@ -3,6 +3,7 @@
 #include <limits>
 #include <cctype>
 #include <iostream>
+#include <errno.h>
 
 using namespace v8;
 
@@ -143,19 +144,21 @@ NAN_METHOD(prlimit) {
 
 	struct rlimit old_limit;
 
-	int err = prlimit(pid, resource, has_new_limit ? &new_limit : NULL, &old_limit);
-
-	if (err == EFAULT)
-		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EFAULT: A pointer argument points to a location outside the accessible address space."));
-	if (err == EINVAL)
-		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EINVAL: The value specified in resource is not valid; or, for setrlimit() or prlimit(): rlim->rlim_cur was greater than rlim->rlim_max."));
-	if (err == EPERM)
-		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EPERM: An unprivileged process tried to raise the hard limit; the CAP_SYS_RESOURCE capability is required to do this. Or, the caller tried to increase the hard RLIMIT_NOFILE limit above the current kernel maximum (NR_OPEN). Or, the calling process did not have permission to set limits for the process specified by pid."));
-	if (err == ESRCH)
-		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "ESRCH: Could not find a process with the ID specified in pid."));
-	if (err)
-		return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "Unknown error number"));
-
+	if (prlimit(pid, resource, has_new_limit ? &new_limit : NULL, &old_limit)) {
+		switch (errno) {
+			case EFAULT:
+				return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EFAULT: A pointer argument points to a location outside the accessible address space."));
+			case EINVAL:
+				return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EINVAL: The value specified in resource is not valid; or, for setrlimit() or prlimit(): rlim->rlim_cur was greater than rlim->rlim_max."));
+			case EPERM:
+				return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "EPERM: An unprivileged process tried to raise the hard limit; the CAP_SYS_RESOURCE capability is required to do this. Or, the caller tried to increase the hard RLIMIT_NOFILE limit above the current kernel maximum (NR_OPEN). Or, the calling process did not have permission to set limits for the process specified by pid."));
+			case ESRCH:
+				return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "ESRCH: Could not find a process with the ID specified in pid."));
+			default:
+				return Nan::ThrowError(Nan::ErrnoException(err, "prlimit", "Unknown error number"));
+		}
+	}
+	
 	Local<Object> old_limit_obj = Nan::New<Object>();
 	old_limit_obj->Set(V8String("soft"), RLimitToV8Value(old_limit.rlim_cur));
 	old_limit_obj->Set(V8String("hard"), RLimitToV8Value(old_limit.rlim_max));
